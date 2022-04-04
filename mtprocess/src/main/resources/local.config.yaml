@@ -1,0 +1,10 @@
+listener:
+  host: "0.0.0.0"
+  port: "8081"
+api:
+  host: "mt2.de-c1.eu1.cloudhub.io"
+  base: "/api"
+client:
+  id: "b84b2cf740f44b24a00a78a0156cebdd"
+pf:
+  apid: "1217708"

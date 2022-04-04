@@ -1,0 +1,47 @@
+{
+  "Order": {
+    "signatureRequiredFlag": false,
+    "shipInstructions": "sit",
+    "giftWrapMessage": "voluptas",
+    "subTotal": 97,
+    "giftWrapFlag": true,
+    "poNumber": 52,
+    "currencyCode": "ab",
+    "": {
+      
+    }
+  },
+  "Item": [
+    {
+      "quantity": 2,
+      "size": "ea",
+      "id": "381c8994352c4cb88b8",
+      "category": "nisi",
+      "": {
+        
+      }
+    },
+    {
+      "quantity": 65,
+      "size": "dolores",
+      "id": "3d0d7d5975fb4b3b964",
+      "category": "quia",
+      "": {
+        
+      }
+    }
+  ],
+  "Customer": {
+    "firstName": "Christoper",
+    "lastName": "Daviot",
+    "number": "ullam",
+    "address": "Waller St 98",
+    "email": "Alyssa.Davitashvili@gmail.com",
+    "": {
+      
+    }
+  },
+  "": {
+    
+  }
+}

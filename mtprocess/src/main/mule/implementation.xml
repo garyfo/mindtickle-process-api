@@ -1,0 +1,100 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<mule xmlns:ee="http://www.mulesoft.org/schema/mule/ee/core"
+	xmlns:http="http://www.mulesoft.org/schema/mule/http" xmlns="http://www.mulesoft.org/schema/mule/core"
+	xmlns:doc="http://www.mulesoft.org/schema/mule/documentation"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="
+http://www.mulesoft.org/schema/mule/http http://www.mulesoft.org/schema/mule/http/current/mule-http.xsd http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd
+http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/ee/core/current/mule-ee.xsd">
+	
+	
+	<sub-flow name="searchCustomer" doc:id="4f20306b-5bbf-47b9-8274-022921dd59c5">
+        <set-variable value="nothing" doc:name="Customer ID" doc:id="a91d9138-2acc-4f01-9c4a-8a74971cdb5a" variableName="customerid" />
+		<foreach doc:name="For Each Customer" doc:id="b7384dd9-5bea-4d69-8eb3-3a577d4b787a">
+            <choice doc:name="check Customer" doc:id="0e065ade-1df1-4e2f-beec-0f1e648e584d">
+                <when expression="#[vars.customer.email == payload.email]">
+                    <set-variable value="#[payload.id]" doc:name="Customer ID" doc:id="f3240d6e-7ff9-4569-acd1-24351be5aa05" variableName="customerid" />
+                </when>
+            </choice>
+        </foreach>
+    </sub-flow>
+    <sub-flow name="fetchCustomer" doc:id="88451803-a7ae-4a7a-a180-2e4d17e6b346">
+        <http:request method="GET" doc:name="GET /customers" doc:id="a5991996-7086-4a53-b738-bfef648a4074" config-ref="HTTP_Request_configuration" path="/customers" />
+        <ee:transform doc:name="set metadata" doc:id="d7f15679-77f2-40ff-a10a-fa5696a0fac7" >
+			<ee:message >
+				<ee:set-payload ><![CDATA[%dw 2.0
+output application/json
+---
+payload]]></ee:set-payload>
+			</ee:message>
+		</ee:transform>
+		<flow-ref doc:name="Search Customer" doc:id="2d9c9cb1-3b9c-4f5c-8265-e40daeb5e79f" name="searchCustomer" />
+        <choice doc:name="Customer !exists ?" doc:id="791822fd-ceca-4815-aeb6-120219b827f7">
+            <when expression='#[vars.customerid == "nothing"]' >
+				<http:request method="POST" doc:name="/POST Customer" doc:id="c2e5aea6-7ccf-4788-83d1-4a3fee6e8b90" config-ref="HTTP_Request_configuration" path="/customers">
+                    <http:body><![CDATA[#[{
+  "firstName": vars.customer.firstName,
+  "lastName": vars.customer.lastName,
+  "address": vars.customer.address,
+  "email": vars.customer.email,
+  "number": vars.customer.number
+}]]]></http:body>
+                </http:request>
+				<set-variable value="#[payload.message]" doc:name="Customer ID" doc:id="2508c9c7-e297-4fb9-8c73-8681b55a7431" variableName="customerid"/>
+			</when>
+        </choice>
+    </sub-flow>
+	<flow name="postOrders" doc:id="f2d2bf01-3246-4452-a229-99bb552cb4f1">
+	<set-variable value="#[payload.Customer]" doc:name="Customer" doc:id="ce758927-c9c2-4fe6-ab1c-481766026c4b" variableName="customer" />
+        <set-variable value="#[payload.Item]" doc:name="Items" doc:id="503294ab-425a-4158-8a38-753b654df199" variableName="items" />
+        <set-variable value="#[payload.Order]" doc:name="Order" doc:id="01f15b6d-4a1a-437b-b739-b6a2997ab995" variableName="order"/>
+		<flow-ref doc:name="fetch Customer" doc:id="ac8d6313-14e3-463e-92e4-b8d14db9df37" name="fetchCustomer" />
+		<http:request method="POST" doc:name="/POST Order" doc:id="406af870-8208-4b55-bcd1-b329023e1acb" config-ref="HTTP_Request_configuration" path="/orders">
+            <http:body><![CDATA[#[{
+  "poNumber": vars.order.poNumber,
+  "signatureRequiredFlag": vars.order.signatureRequiredFlag,
+  "currencyCode": vars.order.currencyCode,
+  "giftWrapFlag": vars.order.giftWrapFlag,
+  "shipInstructions": vars.order.shipInstructions,
+  "subTotal": vars.order.subTotal,
+  "customerId": vars.customerid,
+  "giftWrapMessage": vars.order.giftWrapMessage,
+}]]]></http:body>
+        </http:request>
+        <set-variable value="#[payload]" doc:name="Order ID" doc:id="d71b2baf-c48b-4c9e-a345-3f3ed229fee4" variableName="orderid"/>
+		<set-variable value="#[[]]" doc:name="items ID" doc:id="52cf1cfe-b8a6-497d-8581-382ed1b2a862" variableName="itemsid"/>
+		<foreach doc:name="For Each" doc:id="fc0d7431-51a9-495f-8828-45a16b80443d" collection="#[vars.items]">
+            <http:request method="POST" doc:name="/POST items" doc:id="2b8a234a-3b51-4fd8-b416-a0a2f946e311" path="/items" config-ref="HTTP_Request_configuration" >
+				<http:body ><![CDATA[#[payload ++ {"orderid":	vars.orderid.message}]]]></http:body>
+			</http:request>
+			<set-variable value="#[%dw 2.0&#10;output application/json&#10;---&#10;vars.itemsid &lt;&lt; payload.message]" doc:name="Item ID" doc:id="b300d77a-2b7b-4bcc-b47e-84c4a51702b8" variableName="itemsid"/>
+        </foreach>
+		<ee:transform doc:name="Transform Message" doc:id="9e54f672-a89d-405e-af98-d32faa733d99" >
+			<ee:message >
+				<ee:set-payload ><![CDATA[%dw 2.0
+output application/json
+---
+{
+	"customerID":	vars.customerid,
+	"orderID":	vars.orderid.message,
+	"itemsID": vars.itemsid
+}]]></ee:set-payload>
+			</ee:message>
+		</ee:transform>
+		<error-handler>
+			<on-error-propagate enableNotifications="true" logException="true" doc:name="On Error Propagate" doc:id="8f9af97e-0a9a-4377-9394-cad4085a183f" >
+				<ee:transform doc:name="Transform Message" doc:id="2bbf8970-e22a-4805-ba95-008ce157d0e3" >
+					<ee:message >
+						<ee:set-payload ><![CDATA[%dw 2.0
+output application/json
+---
+{
+	"message":	error.errorMessage.payload
+}]]></ee:set-payload>
+					</ee:message>
+				</ee:transform>
+				<set-variable value="#[error.muleMessage.attributes.StatusCode]" doc:name="httpStatus" doc:id="081ad674-f2bd-463e-a82a-5202bea7da4d" variableName="httpStatus"/>
+			</on-error-propagate>
+		</error-handler>
+	</flow>
+	</mule>

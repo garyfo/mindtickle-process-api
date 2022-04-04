@@ -1,0 +1,28 @@
+%dw 2.0
+
+type auto_f2d2bf01_3246_4452_a229_99bb552cb4f1_Input_Payload = {
+  Order: {
+    signatureRequiredFlag: Boolean, 
+    shipInstructions: String, 
+    giftWrapMessage: String, 
+    subTotal: Number, 
+    giftWrapFlag: Boolean, 
+    poNumber: Number, 
+    currencyCode: String, 
+    _?: Any
+  } {"description": "Describe the order data type",
+  "label": "Order"}, 
+  Item: Array<{    quantity: Number,     size: String,     id: String,     category: String,     _?: Any  } {"description": "Describe the item data type",
+  "label": "Item"}>, 
+  Customer: {
+    firstName: String, 
+    lastName: String, 
+    number: String, 
+    address: String, 
+    email: String, 
+    _?: Any
+  } {"description": "Describe the customer data type",
+  "label": "Customer"}, 
+  _?: Any
+}
+
